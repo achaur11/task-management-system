@@ -1,0 +1,25 @@
+# Node
+node_modules/
+
+# Nx
+.nx/cache/
+.nx/workspace-data/
+
+# Angular CLI local data
+.angular/
+
+# Builds
+/dist/
+/tmp/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+
+# Env
+.env
+.env.*
