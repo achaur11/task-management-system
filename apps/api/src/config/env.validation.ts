@@ -23,7 +23,11 @@ export class EnvironmentVariables {
   DB_URL: string = 'sqlite://database.sqlite';
 
   @IsString()
-  JWT_SECRET: string;
+  JWT_SECRET!: string;
+
+  @IsString()
+  @IsOptional()
+  JWT_EXPIRES_IN: string = '1h';
 
   @Type(() => Number)
   @IsNumber()
