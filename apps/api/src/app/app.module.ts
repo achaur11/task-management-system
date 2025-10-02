@@ -9,11 +9,13 @@ import { validate } from '../config/env.validation';
 import databaseConfig from '../config/database.config';
 import { AllExceptionsFilter } from '../common/filters/http-exception.filter';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
-import { ValidationPipe } from '../common/pipes/validation.pipe';
+import { ValidationPipe as NestValidationPipe, BadRequestException } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
 import { AuthModule } from '../auth/auth.module';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RbacModule } from 'auth';
+import { TasksModule } from '../tasks/tasks.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { RbacModule } from 'auth';
     DatabaseModule,
     AuthModule,
     RbacModule,
+    TasksModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [
@@ -55,10 +59,30 @@ import { RbacModule } from 'auth';
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
     },
-    {
-      provide: APP_PIPE,
-      useClass: ValidationPipe,
-    },
+            {
+              provide: APP_PIPE,
+              useClass: NestValidationPipe,
+              useValue: {
+                transform: true,
+                whitelist: true,
+                forbidNonWhitelisted: true,
+                transformOptions: {
+                  enableImplicitConversion: true,
+                },
+                exceptionFactory: (errors) => {
+                  const errorMessages = errors.map(error => ({
+                    property: error.property,
+                    constraints: error.constraints,
+                    value: error.value
+                  }));
+                  console.error('Validation errors:', errorMessages);
+                  return new BadRequestException({
+                    message: 'Validation failed',
+                    errors: errorMessages
+                  });
+                }
+              },
+            },
   ],
 })
 export class AppModule {}

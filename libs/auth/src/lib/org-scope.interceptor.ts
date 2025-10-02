@@ -33,7 +33,8 @@ export class OrgScopeInterceptor implements NestInterceptor {
     }
 
     // Add org scope to request for use in services
-    const accessibleOrgIds = getUserAccessibleOrgIds(user.orgId);
+    // For now, just use the user's org ID - the service will build the org tree
+    const accessibleOrgIds = [user.orgId];
     request.orgScope = {
       userOrgId: user.orgId,
       accessibleOrgIds,
