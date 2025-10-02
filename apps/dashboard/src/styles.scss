@@ -380,6 +380,84 @@ h6 { font-size: 12px; line-height: 1.4; }
   transition: all 0.2s ease;
   white-space: nowrap;
 }
+.notion-charts {
+  background: var(--notion-bg);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--notion-shadow);
+}
+
+.notion-charts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* Bar chart */
+.notion-bar-chart {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.notion-bar {
+  position: relative;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--notion-bg-tertiary);
+  overflow: hidden;
+}
+.notion-bar-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.notion-bar-label {
+  position: absolute;
+  left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--notion-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Pie chart */
+.notion-pie-chart {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: center; /* Center the pie and legend */
+  flex-wrap: wrap; /* Stack on small screens */
+}
+.notion-pie {
+  width: 300px; /* Increased size */
+  height: 300px; /* Increased size */
+  border-radius: 50%;
+  background: conic-gradient(#e5e7eb 0% 100%);
+  box-shadow: var(--notion-shadow);
+}
+.notion-pie-legend {
+  display: grid;
+  gap: 8px;
+  justify-items: center; /* Center legend items */
+  text-align: center;
+}
+.legend-item { color: var(--notion-text); font-size: 14px; }
+.legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 9999px; margin-right: 8px; }
+.legend-backlog { background: var(--chart-backlog); }
+.legend-inprogress { background: var(--chart-inprogress); }
+.legend-done { background: var(--chart-done); }
+
+/* Chart color variables */
+:root {
+  --chart-backlog: #60a5fa; /* blue-400 */
+  --chart-inprogress: #f59e0b; /* amber-500 */
+  --chart-done: #10b981; /* emerald-500 */
+}
+.dark:root {
+  --chart-backlog: #3b82f6; /* blue-500 */
+  --chart-inprogress: #f59e0b; /* amber-500 */
+  --chart-done: #10b981; /* emerald-500 */
+}
 
 .notion-view-toggle:hover {
   background: var(--notion-bg-tertiary);

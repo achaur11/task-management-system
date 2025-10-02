@@ -53,6 +53,15 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 </svg>
                 Kanban
               </button>
+              <button
+                (click)="setView('charts')"
+                [class]="view() === 'charts' ? 'notion-view-toggle notion-view-toggle-active' : 'notion-view-toggle'"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3v18M3 13h18M7 13v8m4-8v5m4-5v10m4-10v6" />
+                </svg>
+                Charts
+              </button>
             </div>
             
             <app-ui-button
@@ -130,6 +139,45 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
           
           <div class="notion-text-small notion-text-muted">
             {{ paginatedTasks()?.total || 0 }} tasks found
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts View -->
+      <div *ngIf="view() === 'charts'" class="notion-charts">
+        <div class="notion-charts-header">
+          <div class="notion-flex notion-items-center notion-gap-2">
+            <button (click)="chartType = 'bar'" [class]="chartType === 'bar' ? 'notion-view-toggle notion-view-toggle-active' : 'notion-view-toggle'">Bar</button>
+            <button (click)="chartType = 'pie'" [class]="chartType === 'pie' ? 'notion-view-toggle notion-view-toggle-active' : 'notion-view-toggle'">Pie</button>
+          </div>
+          <div class="notion-text-small notion-text-muted">
+            Total: {{ statusCounts.total }} | Backlog: {{ statusCounts.backlog }} | In Progress: {{ statusCounts.inProgress }} | Done: {{ statusCounts.done }}
+          </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div *ngIf="chartType === 'bar'" class="notion-bar-chart">
+          <div class="notion-bar">
+            <div class="notion-bar-fill" [style.width]="barWidth(statusCounts.backlog, statusCounts.max)" style="background: var(--chart-backlog)"></div>
+            <div class="notion-bar-label">Backlog ({{statusCounts.backlog}})</div>
+          </div>
+          <div class="notion-bar">
+            <div class="notion-bar-fill" [style.width]="barWidth(statusCounts.inProgress, statusCounts.max)" style="background: var(--chart-inprogress)"></div>
+            <div class="notion-bar-label">In Progress ({{statusCounts.inProgress}})</div>
+          </div>
+          <div class="notion-bar">
+            <div class="notion-bar-fill" [style.width]="barWidth(statusCounts.done, statusCounts.max)" style="background: var(--chart-done)"></div>
+            <div class="notion-bar-label">Done ({{statusCounts.done}})</div>
+          </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div *ngIf="chartType === 'pie'" class="notion-pie-chart">
+          <div class="notion-pie" [style.background]="conicGradient"></div>
+          <div class="notion-pie-legend">
+            <div class="legend-item"><span class="legend-dot legend-backlog"></span> Backlog ({{statusPerc.backlog}}%)</div>
+            <div class="legend-item"><span class="legend-dot legend-inprogress"></span> In Progress ({{statusPerc.inProgress}}%)</div>
+            <div class="legend-item"><span class="legend-dot legend-done"></span> Done ({{statusPerc.done}}%)</div>
           </div>
         </div>
       </div>
@@ -661,7 +709,38 @@ export class TasksComponent {
   showModal = signal(false);
   editingTask = signal<Task | null>(null);
   isSaving = signal(false);
-  view = signal<'table' | 'kanban'>('table');
+  view = signal<'table' | 'kanban' | 'charts'>('table');
+  chartType: 'bar' | 'pie' = 'bar';
+
+  // Chart data getters
+  get statusCounts() {
+    const backlog = this.backlogTasks().length;
+    const inProgress = this.inProgressTasks().length;
+    const done = this.doneTasks().length;
+    const total = backlog + inProgress + done;
+    const max = Math.max(1, backlog, inProgress, done);
+    return { backlog, inProgress, done, total, max };
+  }
+
+  get statusPerc() {
+    const { backlog, inProgress, done, total } = this.statusCounts;
+    const pct = (n: number) => total ? Math.round((n / total) * 100) : 0;
+    return { backlog: pct(backlog), inProgress: pct(inProgress), done: pct(done) };
+  }
+
+  get conicGradient(): string {
+    const p = this.statusPerc;
+    const bEnd = p.backlog;
+    const iEnd = bEnd + p.inProgress;
+    const dEnd = 100;
+    // Use theme-aware colors via CSS variables mapped in styles
+    return `conic-gradient(var(--chart-backlog) 0% ${bEnd}%, var(--chart-inprogress) ${bEnd}% ${iEnd}%, var(--chart-done) ${iEnd}% ${dEnd}%)`;
+  }
+
+  barWidth(value: number, max: number): string {
+    const pct = Math.round((value / (max || 1)) * 100);
+    return pct + '%';
+  }
   
   // Make enums available in template
   TaskStatus = TaskStatus;
@@ -902,8 +981,8 @@ export class TasksComponent {
     }
   }
 
-  // Kanban view methods
-  setView(viewType: 'table' | 'kanban'): void {
+  // Kanban/Charts view methods
+  setView(viewType: 'table' | 'kanban' | 'charts'): void {
     this.view.set(viewType);
   }
 
