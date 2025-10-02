@@ -364,6 +364,227 @@ h6 { font-size: 12px; line-height: 1.4; }
   z-index: 9999 !important;
 }
 
+/* View Toggle Styles */
+.notion-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--notion-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.notion-view-toggle:hover {
+  background: var(--notion-bg-tertiary);
+  color: var(--notion-text);
+}
+
+.notion-view-toggle-active {
+  background: var(--notion-bg) !important;
+  color: var(--notion-text) !important;
+  box-shadow: var(--notion-shadow);
+}
+
+/* Kanban Board Styles */
+.notion-kanban-board {
+  background: var(--notion-bg);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--notion-shadow);
+}
+
+.notion-kanban-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  min-height: 600px;
+}
+
+.notion-kanban-column {
+  background: var(--notion-bg-tertiary);
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 500px;
+}
+
+.notion-kanban-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--notion-border);
+}
+
+.notion-kanban-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--notion-text);
+  margin: 0;
+}
+
+.notion-kanban-count {
+  background: var(--notion-accent);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.notion-kanban-list {
+  min-height: 400px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.notion-kanban-list.cdk-drop-list-dragging {
+  background: var(--notion-bg-hover);
+}
+
+.notion-kanban-card {
+  background: var(--notion-bg);
+  border: 1px solid var(--notion-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.notion-kanban-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.notion-kanban-card.cdk-drag-preview {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  transform: rotate(2deg);
+}
+
+.notion-kanban-card.cdk-drag-placeholder {
+  opacity: 0.4;
+  background: var(--notion-bg-tertiary);
+  border: 2px dashed var(--notion-border);
+}
+
+.notion-kanban-card.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.notion-kanban-card-content {
+  margin-bottom: 12px;
+}
+
+.notion-kanban-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--notion-text);
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.notion-kanban-card-description {
+  font-size: 13px;
+  color: var(--notion-text-secondary);
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notion-kanban-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notion-kanban-card-date {
+  font-size: 11px;
+  color: var(--notion-text-tertiary);
+  white-space: nowrap;
+}
+
+.notion-kanban-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.notion-kanban-card:hover .notion-kanban-card-actions {
+  opacity: 1;
+}
+
+.notion-kanban-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: var(--notion-bg-tertiary);
+  color: var(--notion-text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notion-kanban-card-action:hover {
+  background: var(--notion-bg-hover);
+  color: var(--notion-text);
+}
+
+.notion-kanban-card-action-danger:hover {
+  background: var(--notion-danger);
+  color: white;
+}
+
+.notion-kanban-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+}
+
+.notion-kanban-empty-text {
+  color: var(--notion-text-tertiary);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Responsive Kanban */
+@media (max-width: 768px) {
+  .notion-kanban-columns {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .notion-kanban-column {
+    min-height: 300px;
+  }
+  
+  .notion-kanban-list {
+    min-height: 200px;
+  }
+}
+
 @keyframes notion-dropdown-enter {
   from {
     opacity: 0;

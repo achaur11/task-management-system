@@ -2,6 +2,7 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { AuthService } from '../../../shared/services/auth.service';
 import { ApiService } from '../../../shared/services/api.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -16,6 +17,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    DragDropModule,
     UiButtonComponent,
     UiBadgeComponent
   ],
@@ -30,15 +32,39 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
               Manage your organization's tasks and stay organized
             </p>
           </div>
-          <app-ui-button
-            (click)="openCreateModal()"
-            class="notion-btn notion-btn-primary"
-          >
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            New Task
-          </app-ui-button>
+          <div class="notion-flex notion-items-center notion-gap-3">
+            <!-- View Toggle -->
+            <div class="notion-flex notion-items-center notion-gap-1 notion-bg-gray-100 dark:notion-bg-gray-700 notion-rounded-lg notion-p-1">
+              <button
+                (click)="setView('table')"
+                [class]="view() === 'table' ? 'notion-view-toggle notion-view-toggle-active' : 'notion-view-toggle'"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Table
+              </button>
+              <button
+                (click)="setView('kanban')"
+                [class]="view() === 'kanban' ? 'notion-view-toggle notion-view-toggle-active' : 'notion-view-toggle'"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Kanban
+              </button>
+            </div>
+            
+            <app-ui-button
+              (click)="openCreateModal()"
+              class="notion-btn notion-btn-primary"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              New Task
+            </app-ui-button>
+          </div>
         </div>
       </div>
 
@@ -108,8 +134,211 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
         </div>
       </div>
 
+      <!-- Kanban Board -->
+      <div *ngIf="view() === 'kanban'" class="notion-kanban-board">
+        <div class="notion-kanban-columns">
+          <!-- Backlog Column -->
+          <div class="notion-kanban-column">
+            <div class="notion-kanban-header">
+              <h3 class="notion-kanban-title">Backlog</h3>
+              <span class="notion-kanban-count">{{ backlogTasks().length }}</span>
+            </div>
+            <div 
+              cdkDropList
+              #backlogList="cdkDropList"
+              id="backlog"
+              [cdkDropListData]="backlogTasks()"
+              [cdkDropListConnectedTo]="[inprogressList, doneList]"
+              (cdkDropListDropped)="onTaskDrop($event)"
+              class="notion-kanban-list"
+            >
+              <div 
+                *ngFor="let task of backlogTasks()"
+                cdkDrag
+                [cdkDragData]="task"
+                [cdkDragDisabled]="isSaving()"
+                [ngClass]="{'opacity-60': isSaving()}"
+                [attr.data-id]="task.id"
+                [attr.data-status]="task.status"
+                class="notion-kanban-card"
+                [attr.aria-grabbed]="true"
+              >
+                <div class="notion-kanban-card-content">
+                  <h4 class="notion-kanban-card-title">{{ task.title }}</h4>
+                  <p *ngIf="task.description" class="notion-kanban-card-description">{{ task.description }}</p>
+                  <div class="notion-kanban-card-meta">
+                    <app-ui-badge
+                      [variant]="getCategoryVariant(task.category)"
+                      size="sm"
+                    >
+                      {{ task.category }}
+                    </app-ui-badge>
+                    <span class="notion-kanban-card-date">{{ formatDate(task.updatedAt) }}</span>
+                  </div>
+                </div>
+                <div class="notion-kanban-card-actions">
+                  <button
+                    (click)="editTask(task)"
+                    class="notion-kanban-card-action"
+                    title="Edit task"
+                  >
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    (click)="deleteTask(task)"
+                    class="notion-kanban-card-action notion-kanban-card-action-danger"
+                    title="Delete task"
+                  >
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div *ngIf="backlogTasks().length === 0" class="notion-kanban-empty">
+                <p class="notion-kanban-empty-text">No tasks in backlog</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- In Progress Column -->
+          <div class="notion-kanban-column">
+            <div class="notion-kanban-header">
+              <h3 class="notion-kanban-title">In Progress</h3>
+              <span class="notion-kanban-count">{{ inProgressTasks().length }}</span>
+            </div>
+            <div 
+              cdkDropList
+              #inprogressList="cdkDropList"
+              id="inprogress"
+              [cdkDropListData]="inProgressTasks()"
+              [cdkDropListConnectedTo]="[backlogList, doneList]"
+              (cdkDropListDropped)="onTaskDrop($event)"
+              class="notion-kanban-list"
+            >
+              <div 
+                *ngFor="let task of inProgressTasks()"
+                cdkDrag
+                [cdkDragData]="task"
+                [cdkDragDisabled]="isSaving()"
+                [ngClass]="{'opacity-60': isSaving()}"
+                [attr.data-id]="task.id"
+                [attr.data-status]="task.status"
+                class="notion-kanban-card"
+                [attr.aria-grabbed]="true"
+              >
+                <div class="notion-kanban-card-content">
+                  <h4 class="notion-kanban-card-title">{{ task.title }}</h4>
+                  <p *ngIf="task.description" class="notion-kanban-card-description">{{ task.description }}</p>
+                  <div class="notion-kanban-card-meta">
+                    <app-ui-badge
+                      [variant]="getCategoryVariant(task.category)"
+                      size="sm"
+                    >
+                      {{ task.category }}
+                    </app-ui-badge>
+                    <span class="notion-kanban-card-date">{{ formatDate(task.updatedAt) }}</span>
+                  </div>
+                </div>
+                <div class="notion-kanban-card-actions">
+                  <button
+                    (click)="editTask(task)"
+                    class="notion-kanban-card-action"
+                    title="Edit task"
+                  >
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    (click)="deleteTask(task)"
+                    class="notion-kanban-card-action notion-kanban-card-action-danger"
+                    title="Delete task"
+                  >
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div *ngIf="inProgressTasks().length === 0" class="notion-kanban-empty">
+                <p class="notion-kanban-empty-text">No tasks in progress</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Done Column -->
+          <div class="notion-kanban-column">
+            <div class="notion-kanban-header">
+              <h3 class="notion-kanban-title">Done</h3>
+              <span class="notion-kanban-count">{{ doneTasks().length }}</span>
+            </div>
+            <div 
+              cdkDropList
+              #doneList="cdkDropList"
+              id="done"
+              [cdkDropListData]="doneTasks()"
+              [cdkDropListConnectedTo]="[backlogList, inprogressList]"
+              (cdkDropListDropped)="onTaskDrop($event)"
+              class="notion-kanban-list"
+            >
+              <div 
+                *ngFor="let task of doneTasks()"
+                cdkDrag
+                [cdkDragData]="task"
+                [cdkDragDisabled]="isSaving()"
+                [ngClass]="{'opacity-60': isSaving()}"
+                [attr.data-id]="task.id"
+                [attr.data-status]="task.status"
+                class="notion-kanban-card"
+                [attr.aria-grabbed]="true"
+              >
+                <div class="notion-kanban-card-content">
+                  <h4 class="notion-kanban-card-title">{{ task.title }}</h4>
+                  <p *ngIf="task.description" class="notion-kanban-card-description">{{ task.description }}</p>
+                  <div class="notion-kanban-card-meta">
+                    <app-ui-badge
+                      [variant]="getCategoryVariant(task.category)"
+                      size="sm"
+                    >
+                      {{ task.category }}
+                    </app-ui-badge>
+                    <span class="notion-kanban-card-date">{{ formatDate(task.updatedAt) }}</span>
+                  </div>
+                </div>
+                <div class="notion-kanban-card-actions">
+                  <button
+                    (click)="editTask(task)"
+                    class="notion-kanban-card-action"
+                    title="Edit task"
+                  >
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    (click)="deleteTask(task)"
+                    class="notion-kanban-card-action notion-kanban-card-action-danger"
+                    title="Delete task"
+                  >
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div *ngIf="doneTasks().length === 0" class="notion-kanban-empty">
+                <p class="notion-kanban-empty-text">No completed tasks</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Tasks Table -->
-      <div class="notion-card">
+      <div *ngIf="view() === 'table'" class="notion-card">
         <div class="overflow-x-auto">
           <table class="notion-table">
             <thead>
@@ -315,6 +544,16 @@ export class TasksComponent {
   showModal = signal(false);
   editingTask = signal<Task | null>(null);
   isSaving = signal(false);
+  view = signal<'table' | 'kanban'>('table');
+  
+  // Make enums available in template
+  TaskStatus = TaskStatus;
+  TaskCategory = TaskCategory;
+  
+  // Separate arrays for each column to enable proper drag-and-drop
+  backlogTasks = signal<Task[]>([]);
+  inProgressTasks = signal<Task[]>([]);
+  doneTasks = signal<Task[]>([]);
 
   // Filters
   filters: TaskFilters = {
@@ -349,6 +588,8 @@ export class TasksComponent {
       // Ensure we have a valid response with data array
       if (response && Array.isArray(response.data)) {
         this.paginatedTasks.set(response);
+        // Update separate arrays for Kanban columns
+        this.updateKanbanArrays(response.data);
       } else {
         console.warn('Invalid response structure:', response);
         this.paginatedTasks.set({
@@ -357,6 +598,7 @@ export class TasksComponent {
           pageSize: 20,
           total: 0
         });
+        this.updateKanbanArrays([]);
       }
     } catch (error) {
       console.error('Error loading tasks:', error);
@@ -368,7 +610,14 @@ export class TasksComponent {
         pageSize: 20,
         total: 0
       });
+      this.updateKanbanArrays([]);
     }
+  }
+
+  private updateKanbanArrays(tasks: Task[]): void {
+    this.backlogTasks.set(tasks.filter(task => task.status === TaskStatus.Backlog));
+    this.inProgressTasks.set(tasks.filter(task => task.status === TaskStatus.InProgress));
+    this.doneTasks.set(tasks.filter(task => task.status === TaskStatus.Done));
   }
 
   openCreateModal(): void {
@@ -416,7 +665,7 @@ export class TasksComponent {
       }
 
       this.closeModal();
-      this.loadTasks();
+      await this.loadTasks();
     } catch (error) {
       this.toastService.error('Failed to save task');
       console.error('Error saving task:', error);
@@ -433,7 +682,7 @@ export class TasksComponent {
     try {
       await this.apiService.deleteTask(task.id).toPromise();
       this.toastService.success('Task deleted successfully');
-      this.loadTasks();
+      await this.loadTasks();
     } catch (error) {
       this.toastService.error('Failed to delete task');
       console.error('Error deleting task:', error);
@@ -475,6 +724,139 @@ export class TasksComponent {
     if ((this.filters?.page && this.filters?.pageSize) && ((this.filters.page! * this.filters.pageSize!) < total)) {
       this.filters.page++;
       this.loadTasks();
+    }
+  }
+
+  // Kanban view methods
+  setView(viewType: 'table' | 'kanban'): void {
+    this.view.set(viewType);
+  }
+
+  getTasksByStatus(status: TaskStatus): Task[] {
+    return this.paginatedTasks()?.data?.filter((task: Task) => task.status === status) || [];
+  }
+
+  getCategoryVariant(category: TaskCategory): 'danger' | 'success' | 'warning' | 'info' | 'default' {
+    switch (category) {
+      case TaskCategory.Work:
+        return 'info';
+      case TaskCategory.Personal:
+        return 'warning';
+      case TaskCategory.Learning:
+        return 'success';
+      default:
+        return 'default';
+    }
+  }
+
+  onTaskDrop(event: CdkDragDrop<Task[]>): void {
+    const sameContainer = event.previousContainer === event.container;
+
+    if (sameContainer) {
+      // Same column - reorder locally and re-set signal to trigger UI update
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      this.setListById(event.container.id, [...event.container.data]);
+      return;
+    }
+
+    // Cross-column move
+    const task = event.item.data as Task;
+    const sourceId = event.previousContainer.id;
+    const targetId = event.container.id;
+    const newStatus = this.getStatusFromContainerId(targetId);
+    const oldStatus = task.status;
+
+    // Optimistically move item between lists
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+    // Update lists' signals to trigger render
+    this.setListById(sourceId, [...event.previousContainer.data]);
+    this.setListById(targetId, [...event.container.data]);
+
+    // Optimistically update task status locally (lists + paginated cache)
+    task.status = newStatus;
+    const current = this.paginatedTasks();
+    const optimisticData = current.data.map((t: Task) => (t.id === task.id ? { ...t, status: newStatus } : t));
+    this.paginatedTasks.set({ ...current, data: optimisticData });
+
+    // Persist via API; on error, revert UI and data
+    this.apiService.updateTask(task.id, { status: newStatus }).subscribe({
+      next: (serverTask) => {
+        // Merge server response onto existing task to avoid losing fields when API returns partials
+        const fresh = this.paginatedTasks();
+        const synced = fresh.data.map((t: Task) => {
+          if (t.id !== task.id) return t;
+          return { ...t, ...serverTask } as Task;
+        });
+        this.paginatedTasks.set({ ...fresh, data: synced });
+        this.updateKanbanArrays(synced);
+        this.toastService.show('Task status updated successfully', 'success');
+      },
+      error: (error) => {
+        console.error('Error updating task status:', error);
+        this.toastService.show('Failed to update task status', 'error');
+
+        // Revert task status and move back
+        task.status = oldStatus;
+        // Move back in lists
+        transferArrayItem(
+          event.container.data,
+          event.previousContainer.data,
+          event.currentIndex,
+          event.previousIndex
+        );
+        this.setListById(sourceId, [...event.previousContainer.data]);
+        this.setListById(targetId, [...event.container.data]);
+
+        // Revert paginated cache
+        const fresh = this.paginatedTasks();
+        const reverted = fresh.data.map((t: Task) => (t.id === task.id ? { ...t, status: oldStatus } : t));
+        this.paginatedTasks.set({ ...fresh, data: reverted });
+      }
+    });
+  }
+
+  private getStatusFromContainerId(containerId: string): TaskStatus {
+    switch (containerId) {
+      case 'backlog':
+        return TaskStatus.Backlog;
+      case 'inprogress':
+        return TaskStatus.InProgress;
+      case 'done':
+        return TaskStatus.Done;
+      default:
+        return TaskStatus.Backlog;
+    }
+  }
+
+  private getListById(listId: string): Task[] {
+    switch (listId) {
+      case 'backlog':
+        return this.backlogTasks();
+      case 'inprogress':
+        return this.inProgressTasks();
+      case 'done':
+        return this.doneTasks();
+      default:
+        return [];
+    }
+  }
+
+  private setListById(listId: string, tasks: Task[]): void {
+    switch (listId) {
+      case 'backlog':
+        this.backlogTasks.set(tasks);
+        break;
+      case 'inprogress':
+        this.inProgressTasks.set(tasks);
+        break;
+      case 'done':
+        this.doneTasks.set(tasks);
+        break;
     }
   }
 }
