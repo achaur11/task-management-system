@@ -44,6 +44,12 @@ This application provides a complete task management solution designed for both 
 
 ## Architecture
 
+### Architecture Diagram
+
+![System Architecture](Architecure_diagram.png)
+
+*The above diagram shows the overall system architecture including the frontend, backend, database, and shared libraries with their data flow and key components.*
+
 ### Monorepo Structure
 
 ```
