@@ -6,18 +6,71 @@ import {
   DefaultValuePipe,
   ParseEnumPipe,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { Roles, JwtUser } from 'auth';
 import { Role, AuditAction } from 'data';
 
 import { AuditService } from './audit.service';
 import { User } from '../entities/user.entity';
 
+@ApiTags('Audit')
 @Controller('audit-log')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
   @Roles(Role.Admin, Role.Owner)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Get audit logs',
+    description: 'Get a paginated list of audit logs with filtering options. Requires Admin or Owner role.'
+  })
+  @ApiQuery({ name: 'action', enum: AuditAction, required: false, description: 'Filter by audit action' })
+  @ApiQuery({ name: 'userId', required: false, description: 'Filter by user ID' })
+  @ApiQuery({ name: 'resourceType', required: false, description: 'Filter by resource type' })
+  @ApiQuery({ name: 'resourceId', required: false, description: 'Filter by resource ID' })
+  @ApiQuery({ name: 'from', required: false, description: 'Filter from date (ISO string)' })
+  @ApiQuery({ name: 'to', required: false, description: 'Filter to date (ISO string)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, description: 'Number of items per page (default: 20)' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Audit logs retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              userId: { type: 'string' },
+              action: { type: 'string', enum: ['CREATE', 'READ', 'UPDATE', 'DELETE'] },
+              resourceType: { type: 'string' },
+              resourceId: { type: 'string' },
+              metadata: { type: 'object' },
+              timestamp: { type: 'string', format: 'date-time' },
+              user: {
+                type: 'object',
+                nullable: true,
+                properties: {
+                  id: { type: 'string' },
+                  email: { type: 'string' },
+                  displayName: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        page: { type: 'number' },
+        pageSize: { type: 'number' },
+        total: { type: 'number' }
+      }
+    }
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
   async getAuditLogs(
     @JwtUser() user: User,
     @Query('action', new ParseEnumPipe(AuditAction, { optional: true })) action?: AuditAction,
