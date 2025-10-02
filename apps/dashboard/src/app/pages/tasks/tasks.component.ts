@@ -854,14 +854,26 @@ export class TasksComponent {
         this.paginatedTasks.set({ ...fresh, data: synced });
         this.updateKanbanArrays(synced);
       },
-      error: () => {
+      error: (error: any) => {
+        console.error(`Error updating task ${field}:`, error);
+        
         // Revert on error
         (task as any)[field] = oldValue;
         const fresh = this.paginatedTasks();
         const reverted = fresh.data.map((t: Task) => t.id === task.id ? ({ ...t, [field]: oldValue } as Task) : t);
         this.paginatedTasks.set({ ...fresh, data: reverted });
         this.updateKanbanArrays(reverted);
-        this.toastService.error('Failed to update task');
+        
+        // Handle specific error cases
+        if (error.status === 403) {
+          this.toastService.error('You are not authorized to update this task');
+        } else if (error.status === 404) {
+          this.toastService.error('Task not found. It may have been deleted.');
+        } else if (error.status === 400) {
+          this.toastService.error(`Invalid ${field} data. Please check your input.`);
+        } else {
+          this.toastService.error(`Failed to update task ${field}`);
+        }
       }
     });
 
@@ -920,9 +932,39 @@ export class TasksComponent {
 
       this.closeModal();
       await this.loadTasks();
-    } catch (error) {
-      this.toastService.error('Failed to save task');
+    } catch (error: any) {
       console.error('Error saving task:', error);
+      console.error('Error status:', error.status);
+      console.error('Error message:', error.message);
+      console.error('Error error:', error.error);
+      
+      // Handle specific error cases
+      if (this.editingTask()) {
+        // Update task error handling
+        if (error.status === 403) {
+          this.toastService.error('You are not authorized to update this task');
+        } else if (error.status === 404) {
+          this.toastService.error('Task not found. It may have been deleted.');
+        } else if (error.status === 400) {
+          this.toastService.error('Invalid task data. Please check your input.');
+        } else {
+          this.toastService.error('Failed to update task. Please try again.');
+        }
+      } else {
+        // Create task error handling
+        if (error.status === 403) {
+          this.toastService.error('You are not authorized to create tasks. Only Admin and Owner roles can create tasks.');
+        } else if (error.status === 401) {
+          this.toastService.error('You are not authenticated. Please log in again.');
+        } else if (error.status === 400) {
+          const errorMessage = error.error?.message || 'Invalid task data';
+          this.toastService.error(`Failed to create task: ${errorMessage}`);
+        } else if (error.status === 0) {
+          this.toastService.error('Unable to connect to the server. Please check your connection.');
+        } else {
+          this.toastService.error('Failed to create task. Please try again.');
+        }
+      }
     } finally {
       this.isSaving.set(false);
     }
@@ -937,9 +979,21 @@ export class TasksComponent {
       await this.apiService.deleteTask(task.id).toPromise();
       this.toastService.success('Task deleted successfully');
       await this.loadTasks();
-    } catch (error) {
-      this.toastService.error('Failed to delete task');
+    } catch (error: any) {
       console.error('Error deleting task:', error);
+      
+      // Handle specific error cases
+      if (error.status === 403) {
+        this.toastService.error('You are not authorized to delete this task');
+      } else if (error.status === 404) {
+        this.toastService.error('Task not found. It may have already been deleted.');
+      } else if (error.status === 401) {
+        this.toastService.error('You are not authenticated. Please log in again.');
+      } else if (error.status === 0) {
+        this.toastService.error('Unable to connect to the server. Please check your connection.');
+      } else {
+        this.toastService.error('Failed to delete task. Please try again.');
+      }
     }
   }
 
@@ -1050,9 +1104,21 @@ export class TasksComponent {
         this.updateKanbanArrays(synced);
         this.toastService.show('Task status updated successfully', 'success');
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error updating task status:', error);
-        this.toastService.show('Failed to update task status', 'error');
+        
+        // Handle specific error cases
+        if (error.status === 403) {
+          this.toastService.error('You are not authorized to update this task status');
+        } else if (error.status === 404) {
+          this.toastService.error('Task not found. It may have been deleted.');
+        } else if (error.status === 400) {
+          this.toastService.error('Invalid task status. Please try again.');
+        } else if (error.status === 401) {
+          this.toastService.error('You are not authenticated. Please log in again.');
+        } else {
+          this.toastService.error('Failed to update task status. Please try again.');
+        }
 
         // Revert task status and move back
         task.status = oldStatus;

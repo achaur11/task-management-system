@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { AuditLog } from '../entities/audit-log.entity';
-import { AuditAction } from 'data';
+import { User } from '../entities/user.entity';
+import { Organization } from '../entities/organization.entity';
+import { AuditAction, Role } from 'data';
 
 export interface AuditLogData {
   userId: string;
@@ -18,6 +20,10 @@ export class AuditService {
   constructor(
     @InjectRepository(AuditLog)
     private auditLogRepository: Repository<AuditLog>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(Organization)
+    private organizationRepository: Repository<Organization>,
   ) {}
 
   async log(auditData: AuditLogData): Promise<AuditLog> {
@@ -56,11 +62,20 @@ export class AuditService {
     to?: Date;
     page?: number;
     pageSize?: number;
-  }) {
+  }, user: User) {
+    // Get accessible organization IDs based on user role and org hierarchy
+    const accessibleOrgIds = await this.getAccessibleOrgIds(user);
+
     const queryBuilder = this.auditLogRepository
       .createQueryBuilder('auditLog')
       .leftJoinAndSelect('auditLog.user', 'user')
+      .leftJoin('user.org', 'userOrg')
       .orderBy('auditLog.timestamp', 'DESC');
+
+    // Organization scoping - only show audit logs from accessible organizations
+    queryBuilder.andWhere('userOrg.id IN (:...accessibleOrgIds)', { 
+      accessibleOrgIds 
+    });
 
     if (filters.action) {
       queryBuilder.andWhere('auditLog.action = :action', { action: filters.action });
@@ -101,5 +116,43 @@ export class AuditService {
       pageSize,
       total,
     };
+  }
+
+  /**
+   * Get accessible organization IDs based on user role and organization hierarchy
+   * - Admin: Can see audit logs from their own organization only
+   * - Owner: Can see audit logs from their organization and all child organizations
+   */
+  private async getAccessibleOrgIds(user: User): Promise<string[]> {
+    const accessibleOrgIds = [user.orgId];
+
+    // If user is Owner, include all child organizations
+    if (user.role === Role.Owner) {
+      const childOrgIds = await this.getChildOrganizationIds(user.orgId);
+      accessibleOrgIds.push(...childOrgIds);
+    }
+
+    return accessibleOrgIds;
+  }
+
+  /**
+   * Get all child organization IDs recursively
+   */
+  private async getChildOrganizationIds(parentOrgId: string): Promise<string[]> {
+    const childOrgs = await this.organizationRepository.find({
+      where: { parentOrgId },
+      select: ['id'],
+    });
+
+    let allChildIds: string[] = [];
+    
+    for (const childOrg of childOrgs) {
+      allChildIds.push(childOrg.id);
+      // Recursively get children of children
+      const grandChildIds = await this.getChildOrganizationIds(childOrg.id);
+      allChildIds.push(...grandChildIds);
+    }
+
+    return allChildIds;
   }
 }

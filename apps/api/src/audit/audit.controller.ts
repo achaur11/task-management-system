@@ -9,6 +9,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { Roles, JwtUser } from 'auth';
 import { Role, AuditAction } from 'data';
+import { PaginatedResponseDto } from '../common/dto/api-response.dto';
 
 import { AuditService } from './audit.service';
 import { User } from '../entities/user.entity';
@@ -36,38 +37,7 @@ export class AuditController {
   @ApiResponse({ 
     status: 200, 
     description: 'Audit logs retrieved successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              userId: { type: 'string' },
-              action: { type: 'string', enum: ['CREATE', 'READ', 'UPDATE', 'DELETE'] },
-              resourceType: { type: 'string' },
-              resourceId: { type: 'string' },
-              metadata: { type: 'object' },
-              timestamp: { type: 'string', format: 'date-time' },
-              user: {
-                type: 'object',
-                nullable: true,
-                properties: {
-                  id: { type: 'string' },
-                  email: { type: 'string' },
-                  displayName: { type: 'string' }
-                }
-              }
-            }
-          }
-        },
-        page: { type: 'number' },
-        pageSize: { type: 'number' },
-        total: { type: 'number' }
-      }
-    }
+    type: PaginatedResponseDto
   })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token' })
   @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
@@ -93,7 +63,7 @@ export class AuditController {
       pageSize,
     };
 
-    const result = await this.auditService.findAuditLogs(filters);
+    const result = await this.auditService.findAuditLogs(filters, user);
     
     return {
       data: result.data.map(auditLog => ({

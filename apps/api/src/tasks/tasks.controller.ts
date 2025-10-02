@@ -15,6 +15,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiQuery, A
 import { CreateTaskDto, UpdateTaskDto, TaskResponseDto, TaskStatus, TaskCategory } from 'data';
 import { Roles, OrgScoped, JwtUser, OrgScope } from 'auth';
 import { Role } from 'data';
+import { TaskResponseWrapperDto, PaginatedResponseDto } from '../common/dto/api-response.dto';
 
 import { TasksService, TaskFilters, PaginatedTasks } from './tasks.service';
 import { User } from '../entities/user.entity';
@@ -35,12 +36,7 @@ export class TasksController {
   @ApiResponse({ 
     status: 201, 
     description: 'Task successfully created',
-    schema: {
-      type: 'object',
-      properties: {
-        data: { $ref: '#/components/schemas/TaskResponseDto' }
-      }
-    }
+    type: TaskResponseWrapperDto
   })
   @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token' })
@@ -71,18 +67,7 @@ export class TasksController {
   @ApiResponse({ 
     status: 200, 
     description: 'Tasks retrieved successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'array',
-          items: { $ref: '#/components/schemas/TaskResponseDto' }
-        },
-        page: { type: 'number' },
-        pageSize: { type: 'number' },
-        total: { type: 'number' }
-      }
-    }
+    type: PaginatedResponseDto
   })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token' })
   @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
@@ -127,12 +112,7 @@ export class TasksController {
   @ApiResponse({ 
     status: 200, 
     description: 'Task retrieved successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        data: { $ref: '#/components/schemas/TaskResponseDto' }
-      }
-    }
+    type: TaskResponseWrapperDto
   })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token' })
   @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
@@ -168,12 +148,7 @@ export class TasksController {
   @ApiResponse({ 
     status: 200, 
     description: 'Task updated successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        data: { $ref: '#/components/schemas/TaskResponseDto' }
-      }
-    }
+    type: TaskResponseWrapperDto
   })
   @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token' })

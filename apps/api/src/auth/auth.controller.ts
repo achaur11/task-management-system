@@ -1,6 +1,7 @@
 import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { LoginDto, RegisterDto } from 'data';
+import { ApiResponseDto } from '../common/dto/api-response.dto';
 
 import { AuthService, LoginResponse, RegisterResponse } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -22,21 +23,7 @@ export class AuthController {
   @ApiResponse({ 
     status: 201, 
     description: 'User successfully registered',
-    schema: {
-      type: 'object',
-      properties: {
-        user: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            displayName: { type: 'string' },
-            role: { type: 'string', enum: ['Owner', 'Admin', 'Viewer'] },
-            orgId: { type: 'string' }
-          }
-        }
-      }
-    }
+    type: ApiResponseDto
   })
   @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
   @ApiResponse({ status: 409, description: 'Conflict - user already exists' })
@@ -54,22 +41,7 @@ export class AuthController {
   @ApiResponse({ 
     status: 200, 
     description: 'User successfully logged in',
-    schema: {
-      type: 'object',
-      properties: {
-        accessToken: { type: 'string' },
-        user: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            email: { type: 'string' },
-            displayName: { type: 'string' },
-            role: { type: 'string', enum: ['Owner', 'Admin', 'Viewer'] },
-            orgId: { type: 'string' }
-          }
-        }
-      }
-    }
+    type: ApiResponseDto
   })
   @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid credentials' })
@@ -87,24 +59,7 @@ export class AuthController {
   @ApiResponse({ 
     status: 200, 
     description: 'User profile retrieved successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        email: { type: 'string' },
-        displayName: { type: 'string' },
-        role: { type: 'string', enum: ['Owner', 'Admin', 'Viewer'] },
-        orgId: { type: 'string' },
-        organization: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            name: { type: 'string' },
-            parentId: { type: 'string', nullable: true }
-          }
-        }
-      }
-    }
+    type: ApiResponseDto
   })
   @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing token' })
   async getProfile(@Request() req: { user: User }) {

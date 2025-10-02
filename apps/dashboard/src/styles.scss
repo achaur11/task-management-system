@@ -1496,3 +1496,117 @@ h6 { font-size: 12px; line-height: 1.4; }
     opacity: 1;
   }
 }
+
+/* Toast animations */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Toast positioning and styling */
+.toast-container {
+  position: fixed !important;
+  bottom: 1rem !important;
+  right: 1rem !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  pointer-events: none !important;
+}
+
+.toast-item {
+  pointer-events: auto !important;
+  max-width: 24rem !important;
+  background: var(--notion-bg) !important;
+  border: 1px solid var(--notion-border) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  padding: 1rem !important;
+  transform: translateX(0) !important;
+  transition: all 0.3s ease-in-out !important;
+  animation: slide-up 0.3s ease-out !important;
+}
+
+.toast-item:hover {
+  transform: translateX(-4px) !important;
+}
+
+.toast-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+}
+
+.toast-icon {
+  flex-shrink: 0 !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+.toast-message {
+  flex: 1 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: var(--notion-text) !important;
+  line-height: 1.25rem !important;
+}
+
+.toast-close {
+  flex-shrink: 0 !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0.25rem !important;
+  color: var(--notion-text-tertiary) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 0.25rem !important;
+}
+
+.toast-close:hover {
+  color: var(--notion-text-secondary) !important;
+  background: var(--notion-bg-tertiary) !important;
+  transform: scale(1.1) !important;
+}
+
+.toast-close:active {
+  transform: scale(0.95) !important;
+}
+
+.toast-close svg {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+  stroke-width: 2.5 !important;
+}
+
+/* Toast type colors */
+.toast-success .toast-icon {
+  color: #10b981 !important;
+}
+
+.toast-error .toast-icon {
+  color: #ef4444 !important;
+}
+
+.toast-warning .toast-icon {
+  color: #f59e0b !important;
+}
+
+.toast-info .toast-icon {
+  color: #3b82f6 !important;
+}
