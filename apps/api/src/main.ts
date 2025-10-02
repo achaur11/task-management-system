@@ -15,6 +15,15 @@ import { seedDatabase } from './seed/seed';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Enable CORS for frontend development
+  app.enableCors({
+    origin: ['http://localhost:4200', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
+  
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 

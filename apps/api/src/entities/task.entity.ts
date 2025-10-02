@@ -7,17 +7,7 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
-
-enum TaskStatus {
-  Backlog = 'Backlog',
-  InProgress = 'InProgress',
-  Done = 'Done',
-}
-
-enum TaskCategory {
-  Work = 'Work',
-  Personal = 'Personal',
-}
+import { TaskStatus, TaskCategory } from 'data';
 import { Organization } from './organization.entity';
 import { User } from './user.entity';
 

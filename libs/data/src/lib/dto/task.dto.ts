@@ -45,7 +45,7 @@ export class TaskResponseDto {
   status!: TaskStatus;
   category!: TaskCategory;
   orgId!: string;
-  createdByUserId!: string;
+  createdByUserId?: string;
   createdAt!: string;
   updatedAt!: string;
 }

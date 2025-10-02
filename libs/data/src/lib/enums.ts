@@ -13,6 +13,7 @@ export enum TaskStatus {
 export enum TaskCategory {
   Work = 'Work',
   Personal = 'Personal',
+  Learning = 'Learning',
 }
 
 export enum AuditAction {
