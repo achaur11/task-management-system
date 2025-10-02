@@ -17,59 +17,85 @@ import { ToastService } from '../../shared/services/toast.service';
           <div class="flex justify-between h-16">
             <!-- Left side - Logo and nav -->
             <div class="flex">
-              <div class="flex-shrink-0 flex items-center">
+              <div class="flex-shrink-0 flex items-center notion-logo">
                 <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">
                   Task Manager
                 </h1>
               </div>
               
               <!-- Desktop navigation -->
-              <div class="hidden md:ml-6 md:flex md:space-x-8">
-                <a 
+              <div class="hidden md:ml-8 md:flex md:space-x-3 notion-nav-group">
+                <button 
                   routerLink="/tasks" 
-                  routerLinkActive="border-blue-500 text-gray-900 dark:text-gray-100"
-                  class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+                  routerLinkActive="notion-nav-active"
+                  class="notion-nav-btn"
                 >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
                   Tasks
-                </a>
-                <a 
+                </button>
+                <button 
                   *ngIf="canAccessAudit()"
                   routerLink="/audit" 
-                  routerLinkActive="border-blue-500 text-gray-900 dark:text-gray-100"
-                  class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+                  routerLinkActive="notion-nav-active"
+                  class="notion-nav-btn"
                 >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                   Audit
-                </a>
+                </button>
               </div>
             </div>
 
-            <!-- Right side - Theme toggle and user menu -->
+            <!-- Right side - Mobile menu, Theme toggle and user menu -->
             <div class="flex items-center space-x-4">
+              <!-- Mobile menu button -->
+              <button
+                (click)="toggleMobileMenu()"
+                class="notion-mobile-menu-btn"
+                title="Toggle menu"
+              >
+                <div class="notion-mobile-menu-icon-container">
+                  <svg class="notion-mobile-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </div>
+                <span class="notion-mobile-menu-label">Menu</span>
+              </button>
+
               <!-- Theme toggle -->
               <button
                 (click)="toggleTheme()"
-                class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-                title="Toggle theme"
+                class="notion-theme-toggle"
+                [title]="theme() === 'light' ? 'Switch to dark mode' : 'Switch to light mode'"
               >
-                <svg *ngIf="theme() === 'light'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-                <svg *ngIf="theme() === 'dark'" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
+                <div class="notion-theme-icon-container">
+                  <svg *ngIf="theme() === 'light'" class="notion-theme-icon notion-theme-moon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                  <svg *ngIf="theme() === 'dark'" class="notion-theme-icon notion-theme-sun" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <span class="notion-theme-label">{{ theme() === 'light' ? 'Dark' : 'Light' }}</span>
               </button>
 
               <!-- User menu -->
               <div class="relative" #userMenu>
                 <button
                   (click)="toggleUserMenu()"
-                  class="flex items-center space-x-2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                  class="notion-user-menu-btn"
                 >
-                  <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                  <div class="notion-user-avatar">
                     {{ getUserInitials() }}
                   </div>
-                  <span class="hidden md:block text-sm font-medium">{{ user()?.displayName }}</span>
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div class="hidden md:block notion-user-info">
+                    <div class="notion-user-name">{{ user()?.displayName }}</div>
+                    <div class="notion-user-role">{{ user()?.role }}</div>
+                  </div>
+                  <svg class="notion-user-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -77,18 +103,27 @@ import { ToastService } from '../../shared/services/toast.service';
                 <!-- Dropdown menu -->
                 <div 
                   *ngIf="showUserMenu"
-                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                  class="notion-user-dropdown"
                 >
-                  <div class="py-1">
-                    <div class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
-                      <div class="font-medium">{{ user()?.displayName }}</div>
-                      <div class="text-gray-500 dark:text-gray-400">{{ user()?.email }}</div>
-                      <div class="text-xs text-blue-600 dark:text-blue-400">{{ user()?.role }}</div>
+                  <div class="notion-user-dropdown-content">
+                    <div class="notion-user-profile">
+                      <div class="notion-user-profile-avatar">
+                        {{ getUserInitials() }}
+                      </div>
+                      <div class="notion-user-profile-info">
+                        <div class="notion-user-profile-name">{{ user()?.displayName }}</div>
+                        <div class="notion-user-profile-email">{{ user()?.email }}</div>
+                        <div class="notion-user-profile-role">{{ user()?.role }}</div>
+                      </div>
                     </div>
+                    <div class="notion-user-dropdown-divider"></div>
                     <button
                       (click)="logout()"
-                      class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                      class="notion-user-logout-btn"
                     >
+                      <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
                       Sign out
                     </button>
                   </div>
@@ -101,21 +136,29 @@ import { ToastService } from '../../shared/services/toast.service';
         <!-- Mobile menu -->
         <div *ngIf="showMobileMenu" class="md:hidden border-t border-gray-200 dark:border-gray-700">
           <div class="px-2 pt-2 pb-3 space-y-1">
-            <a 
+            <button 
               routerLink="/tasks" 
-              routerLinkActive="bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 block px-3 py-2 rounded-md text-base font-medium"
+              routerLinkActive="notion-nav-active-mobile"
+              class="notion-nav-btn-mobile"
+              (click)="closeMobileMenu()"
             >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
               Tasks
-            </a>
-            <a 
+            </button>
+            <button 
               *ngIf="canAccessAudit()"
               routerLink="/audit" 
-              routerLinkActive="bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 block px-3 py-2 rounded-md text-base font-medium"
+              routerLinkActive="notion-nav-active-mobile"
+              class="notion-nav-btn-mobile"
+              (click)="closeMobileMenu()"
             >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
               Audit
-            </a>
+            </button>
           </div>
         </div>
       </nav>
@@ -189,6 +232,14 @@ export class AppLayoutComponent {
 
   toggleUserMenu(): void {
     this.showUserMenu = !this.showUserMenu;
+  }
+
+  toggleMobileMenu(): void {
+    this.showMobileMenu = !this.showMobileMenu;
+  }
+
+  closeMobileMenu(): void {
+    this.showMobileMenu = false;
   }
 
   getUserInitials(): string {

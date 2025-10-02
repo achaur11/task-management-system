@@ -23,7 +23,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
     <div class="notion-page">
       <!-- Page Header -->
       <div class="notion-card-header">
-        <div class="notion-flex notion-items-center notion-justify-between">
+        <div class="notion-flex notion-items-center notion-justify-between notion-card-header-inner">
           <div>
             <h1 class="text-3xl font-semibold mb-2">Tasks</h1>
             <p class="notion-text-muted">
@@ -32,7 +32,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
           </div>
           <app-ui-button
             (click)="openCreateModal()"
-            class="notion-btn-primary"
+            class="notion-btn notion-btn-primary"
           >
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -151,13 +151,13 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                   <div class="notion-flex notion-justify-end notion-gap-2">
                     <button
                       (click)="editTask(task)"
-                      class="notion-btn-ghost notion-btn-sm"
+                      class="notion-btn notion-btn-secondary notion-btn-sm"
                     >
                       Edit
                     </button>
                     <button
                       (click)="deleteTask(task)"
-                      class="notion-btn-danger notion-btn-sm"
+                      class="notion-btn notion-btn-danger notion-btn-sm"
                     >
                       Delete
                     </button>
