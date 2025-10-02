@@ -506,6 +506,31 @@ h6 { font-size: 12px; line-height: 1.4; }
   overflow: hidden;
 }
 
+/* Inline edit styles - appear like plain text at rest */
+.notion-inline-view { cursor: text; }
+.notion-inline-input,
+.notion-inline-textarea {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--notion-text);
+  font: inherit;
+  padding: 0;
+  margin: 0 0 8px 0;
+  outline: none;
+}
+.notion-inline-textarea {
+  margin-bottom: 12px;
+  resize: vertical;
+}
+.notion-inline-input:focus,
+.notion-inline-textarea:focus {
+  border-color: var(--notion-border);
+  background: var(--notion-bg);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
 .notion-kanban-card-meta {
   display: flex;
   align-items: center;

@@ -164,8 +164,47 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 [attr.aria-grabbed]="true"
               >
                 <div class="notion-kanban-card-content">
-                  <h4 class="notion-kanban-card-title">{{ task.title }}</h4>
-                  <p *ngIf="task.description" class="notion-kanban-card-description">{{ task.description }}</p>
+                  <!-- Inline editable title -->
+                  <h4 
+                    *ngIf="editingInlineId !== task.id || inlineField !== 'title'"
+                    class="notion-kanban-card-title notion-inline-view"
+                    (click)="startInlineEdit(task, 'title')"
+                    title="Click to edit title"
+                  >
+                    {{ task.title || 'Untitled task' }}
+                  </h4>
+                  <input
+                    *ngIf="editingInlineId === task.id && inlineField === 'title'"
+                    class="notion-inline-input notion-kanban-card-title"
+                    type="text"
+                    [value]="inlineValue"
+                    (input)="inlineValue = $any($event.target).value"
+                    (blur)="commitInlineEdit(task)"
+                    (keydown.enter)="commitInlineEdit(task)"
+                    (keydown.escape)="cancelInlineEdit()"
+                    autofocus
+                  />
+
+                  <!-- Inline editable description -->
+                  <p
+                    *ngIf="(editingInlineId !== task.id || inlineField !== 'description') && task.description"
+                    class="notion-kanban-card-description notion-inline-view"
+                    (click)="startInlineEdit(task, 'description')"
+                    title="Click to edit description"
+                  >
+                    {{ task.description }}
+                  </p>
+                  <textarea
+                    *ngIf="editingInlineId === task.id && inlineField === 'description'"
+                    class="notion-inline-textarea notion-kanban-card-description"
+                    rows="2"
+                    [value]="inlineValue"
+                    (input)="inlineValue = $any($event.target).value"
+                    (blur)="commitInlineEdit(task)"
+                    (keydown.enter)="$event.preventDefault(); commitInlineEdit(task)"
+                    (keydown.escape)="cancelInlineEdit()"
+                    autofocus
+                  ></textarea>
                   <div class="notion-kanban-card-meta">
                     <app-ui-badge
                       [variant]="getCategoryVariant(task.category)"
@@ -230,8 +269,47 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 [attr.aria-grabbed]="true"
               >
                 <div class="notion-kanban-card-content">
-                  <h4 class="notion-kanban-card-title">{{ task.title }}</h4>
-                  <p *ngIf="task.description" class="notion-kanban-card-description">{{ task.description }}</p>
+                  <!-- Inline editable title -->
+                  <h4 
+                    *ngIf="editingInlineId !== task.id || inlineField !== 'title'"
+                    class="notion-kanban-card-title notion-inline-view"
+                    (click)="startInlineEdit(task, 'title')"
+                    title="Click to edit title"
+                  >
+                    {{ task.title || 'Untitled task' }}
+                  </h4>
+                  <input
+                    *ngIf="editingInlineId === task.id && inlineField === 'title'"
+                    class="notion-inline-input notion-kanban-card-title"
+                    type="text"
+                    [value]="inlineValue"
+                    (input)="inlineValue = $any($event.target).value"
+                    (blur)="commitInlineEdit(task)"
+                    (keydown.enter)="commitInlineEdit(task)"
+                    (keydown.escape)="cancelInlineEdit()"
+                    autofocus
+                  />
+
+                  <!-- Inline editable description -->
+                  <p
+                    *ngIf="(editingInlineId !== task.id || inlineField !== 'description') && task.description"
+                    class="notion-kanban-card-description notion-inline-view"
+                    (click)="startInlineEdit(task, 'description')"
+                    title="Click to edit description"
+                  >
+                    {{ task.description }}
+                  </p>
+                  <textarea
+                    *ngIf="editingInlineId === task.id && inlineField === 'description'"
+                    class="notion-inline-textarea notion-kanban-card-description"
+                    rows="2"
+                    [value]="inlineValue"
+                    (input)="inlineValue = $any($event.target).value"
+                    (blur)="commitInlineEdit(task)"
+                    (keydown.enter)="$event.preventDefault(); commitInlineEdit(task)"
+                    (keydown.escape)="cancelInlineEdit()"
+                    autofocus
+                  ></textarea>
                   <div class="notion-kanban-card-meta">
                     <app-ui-badge
                       [variant]="getCategoryVariant(task.category)"
@@ -296,8 +374,47 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 [attr.aria-grabbed]="true"
               >
                 <div class="notion-kanban-card-content">
-                  <h4 class="notion-kanban-card-title">{{ task.title }}</h4>
-                  <p *ngIf="task.description" class="notion-kanban-card-description">{{ task.description }}</p>
+                  <!-- Inline editable title -->
+                  <h4 
+                    *ngIf="editingInlineId !== task.id || inlineField !== 'title'"
+                    class="notion-kanban-card-title notion-inline-view"
+                    (click)="startInlineEdit(task, 'title')"
+                    title="Click to edit title"
+                  >
+                    {{ task.title || 'Untitled task' }}
+                  </h4>
+                  <input
+                    *ngIf="editingInlineId === task.id && inlineField === 'title'"
+                    class="notion-inline-input notion-kanban-card-title"
+                    type="text"
+                    [value]="inlineValue"
+                    (input)="inlineValue = $any($event.target).value"
+                    (blur)="commitInlineEdit(task)"
+                    (keydown.enter)="commitInlineEdit(task)"
+                    (keydown.escape)="cancelInlineEdit()"
+                    autofocus
+                  />
+
+                  <!-- Inline editable description -->
+                  <p
+                    *ngIf="(editingInlineId !== task.id || inlineField !== 'description') && task.description"
+                    class="notion-kanban-card-description notion-inline-view"
+                    (click)="startInlineEdit(task, 'description')"
+                    title="Click to edit description"
+                  >
+                    {{ task.description }}
+                  </p>
+                  <textarea
+                    *ngIf="editingInlineId === task.id && inlineField === 'description'"
+                    class="notion-inline-textarea notion-kanban-card-description"
+                    rows="2"
+                    [value]="inlineValue"
+                    (input)="inlineValue = $any($event.target).value"
+                    (blur)="commitInlineEdit(task)"
+                    (keydown.enter)="$event.preventDefault(); commitInlineEdit(task)"
+                    (keydown.escape)="cancelInlineEdit()"
+                    autofocus
+                  ></textarea>
                   <div class="notion-kanban-card-meta">
                     <app-ui-badge
                       [variant]="getCategoryVariant(task.category)"
@@ -555,6 +672,11 @@ export class TasksComponent {
   inProgressTasks = signal<Task[]>([]);
   doneTasks = signal<Task[]>([]);
 
+  // Inline edit state
+  editingInlineId: string | null = null;
+  inlineField: 'title' | 'description' | null = null;
+  inlineValue = '';
+
   // Filters
   filters: TaskFilters = {
     page: 1,
@@ -612,6 +734,59 @@ export class TasksComponent {
       });
       this.updateKanbanArrays([]);
     }
+  }
+
+  // Inline edit handlers
+  startInlineEdit(task: Task, field: 'title' | 'description'): void {
+    this.editingInlineId = task.id;
+    this.inlineField = field;
+    this.inlineValue = (task as any)[field] || '';
+  }
+
+  cancelInlineEdit(): void {
+    this.editingInlineId = null;
+    this.inlineField = null;
+    this.inlineValue = '';
+  }
+
+  commitInlineEdit(task: Task): void {
+    if (!this.inlineField) { this.cancelInlineEdit(); return; }
+    const field = this.inlineField;
+    const newValue = this.inlineValue.trim();
+    const oldValue = (task as any)[field] || '';
+
+    // If unchanged, just close
+    if (newValue === oldValue) { this.cancelInlineEdit(); return; }
+
+    // Optimistic update in local caches
+    (task as any)[field] = newValue;
+    const current = this.paginatedTasks();
+    const optimistic = current.data.map((t: Task) => t.id === task.id ? { ...t, [field]: newValue } as Task : t);
+    this.paginatedTasks.set({ ...current, data: optimistic });
+    this.updateKanbanArrays(optimistic);
+
+    // Persist
+    const payload: Partial<Task> = { [field]: newValue } as any;
+    this.apiService.updateTask(task.id, payload as any).subscribe({
+      next: (serverTask) => {
+        // Merge server response
+        const fresh = this.paginatedTasks();
+        const synced = fresh.data.map((t: Task) => t.id === task.id ? ({ ...t, ...serverTask } as Task) : t);
+        this.paginatedTasks.set({ ...fresh, data: synced });
+        this.updateKanbanArrays(synced);
+      },
+      error: () => {
+        // Revert on error
+        (task as any)[field] = oldValue;
+        const fresh = this.paginatedTasks();
+        const reverted = fresh.data.map((t: Task) => t.id === task.id ? ({ ...t, [field]: oldValue } as Task) : t);
+        this.paginatedTasks.set({ ...fresh, data: reverted });
+        this.updateKanbanArrays(reverted);
+        this.toastService.error('Failed to update task');
+      }
+    });
+
+    this.cancelInlineEdit();
   }
 
   private updateKanbanArrays(tasks: Task[]): void {
