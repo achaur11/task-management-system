@@ -4,12 +4,30 @@ export class InitialSchema1759277529589 implements MigrationInterface {
     name = 'InitialSchema1759277529589'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // Create enums
-        await queryRunner.query(`CREATE TYPE "public"."organizations_parentorgid_name_enum" AS ENUM('Owner', 'Admin', 'Viewer')`);
-        await queryRunner.query(`CREATE TYPE "public"."users_role_enum" AS ENUM('Owner', 'Admin', 'Viewer')`);
-        await queryRunner.query(`CREATE TYPE "public"."tasks_status_enum" AS ENUM('Backlog', 'InProgress', 'Done')`);
-        await queryRunner.query(`CREATE TYPE "public"."tasks_category_enum" AS ENUM('Work', 'Personal')`);
-        await queryRunner.query(`CREATE TYPE "public"."audit_logs_action_enum" AS ENUM('CREATE', 'READ', 'UPDATE', 'DELETE')`);
+        // Create enums (with IF NOT EXISTS check)
+        await queryRunner.query(`DO $$ BEGIN
+            CREATE TYPE "public"."users_role_enum" AS ENUM('Owner', 'Admin', 'Viewer');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;`);
+        
+        await queryRunner.query(`DO $$ BEGIN
+            CREATE TYPE "public"."tasks_status_enum" AS ENUM('Backlog', 'InProgress', 'Done');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;`);
+        
+        await queryRunner.query(`DO $$ BEGIN
+            CREATE TYPE "public"."tasks_category_enum" AS ENUM('Work', 'Personal');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;`);
+        
+        await queryRunner.query(`DO $$ BEGIN
+            CREATE TYPE "public"."audit_logs_action_enum" AS ENUM('CREATE', 'READ', 'UPDATE', 'DELETE');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;`);
 
         // Create organizations table
         await queryRunner.query(`CREATE TABLE "organizations" (
@@ -106,12 +124,11 @@ export class InitialSchema1759277529589 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "users"`);
         await queryRunner.query(`DROP TABLE "organizations"`);
 
-        // Drop enums
-        await queryRunner.query(`DROP TYPE "public"."audit_logs_action_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."tasks_category_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."tasks_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."users_role_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."organizations_parentorgid_name_enum"`);
+        // Drop enums (with IF EXISTS check)
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."audit_logs_action_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."tasks_category_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."tasks_status_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."users_role_enum"`);
     }
 
 }

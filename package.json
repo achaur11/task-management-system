@@ -7,6 +7,7 @@
     "dev:dashboard": "nx serve dashboard",
     "dev:all": "run-p dev:api dev:dashboard",
     "start:dev": "cd apps/api && nx serve api",
+    "migration": "ts-node --project apps/api/tsconfig.migration.json apps/api/run-migration.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
