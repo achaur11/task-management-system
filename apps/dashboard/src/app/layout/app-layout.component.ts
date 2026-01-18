@@ -50,21 +50,7 @@ import { ToastService } from '../../shared/services/toast.service';
             </div>
 
             <!-- Right side - Mobile menu, Theme toggle and user menu -->
-            <div class="flex items-center space-x-4">
-              <!-- Mobile menu button -->
-              <button
-                (click)="toggleMobileMenu()"
-                class="notion-mobile-menu-btn"
-                title="Toggle menu"
-              >
-                <div class="notion-mobile-menu-icon-container">
-                  <svg class="notion-mobile-menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </div>
-                <span class="notion-mobile-menu-label">Menu</span>
-              </button>
-
+            <div class="flex items-center space-x-8">
               <!-- Theme toggle -->
               <button
                 (click)="toggleTheme()"
@@ -133,34 +119,7 @@ import { ToastService } from '../../shared/services/toast.service';
           </div>
         </div>
 
-        <!-- Mobile menu -->
-        <div *ngIf="showMobileMenu" class="md:hidden border-t border-gray-200 dark:border-gray-700">
-          <div class="px-2 pt-2 pb-3 space-y-1">
-            <button 
-              routerLink="/tasks" 
-              routerLinkActive="notion-nav-active-mobile"
-              class="notion-nav-btn-mobile"
-              (click)="closeMobileMenu()"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-              </svg>
-              Tasks
-            </button>
-            <button 
-              *ngIf="canAccessAudit()"
-              routerLink="/audit" 
-              routerLinkActive="notion-nav-active-mobile"
-              class="notion-nav-btn-mobile"
-              (click)="closeMobileMenu()"
-            >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Audit
-            </button>
-          </div>
-        </div>
+        
       </nav>
 
       <!-- Main content -->
@@ -214,7 +173,6 @@ export class AppLayoutComponent {
   private toastService = inject(ToastService);
 
   showUserMenu = false;
-  showMobileMenu = false;
 
   user = computed(() => this.authService.user());
   theme = computed(() => this.themeService.theme());
@@ -232,13 +190,7 @@ export class AppLayoutComponent {
     this.showUserMenu = !this.showUserMenu;
   }
 
-  toggleMobileMenu(): void {
-    this.showMobileMenu = !this.showMobileMenu;
-  }
-
-  closeMobileMenu(): void {
-    this.showMobileMenu = false;
-  }
+  
 
   getUserInitials(): string {
     const user = this.user();

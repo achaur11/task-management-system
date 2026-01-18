@@ -7,10 +7,10 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="w-full">
+    <div>
       <label *ngIf="label" [for]="id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {{ label }}
-        <span *ngIf="required" class="text-red-500">*</span>
+        <span *ngIf="required" class="text-red-500 ml-1">*</span>
       </label>
       <input
         [id]="id"
