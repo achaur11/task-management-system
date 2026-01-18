@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,6 +9,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { Task, TaskStatus, TaskCategory, CreateTaskRequest, UpdateTaskRequest, TaskFilters } from '../../../shared/models/task.model';
 import { UiButtonComponent } from '../../../shared/ui/components/ui-button/ui-button.component';
 import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badge.component';
+import { TaskDetailComponent } from './task-detail.component';
 
 @Component({
   selector: 'app-tasks',
@@ -19,7 +20,8 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
     ReactiveFormsModule,
     DragDropModule,
     UiButtonComponent,
-    UiBadgeComponent
+    UiBadgeComponent,
+    TaskDetailComponent
   ],
   template: `
     <div class="notion-page">
@@ -210,13 +212,18 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 [attr.data-status]="task.status"
                 class="notion-kanban-card"
                 [attr.aria-grabbed]="true"
+                (cdkDragStarted)="onDragStarted(task)"
+                (cdkDragEnded)="onDragEnded(task, $event)"
+                (click)="onCardClick(task, $event)"
               >
-                <div class="notion-kanban-card-content">
+                <div 
+                  class="notion-kanban-card-content"
+                >
                   <!-- Inline editable title -->
                   <h4 
                     *ngIf="editingInlineId !== task.id || inlineField !== 'title'"
                     class="notion-kanban-card-title notion-inline-view"
-                    (click)="startInlineEdit(task, 'title')"
+                    (click)="$event.stopPropagation(); startInlineEdit(task, 'title')"
                     title="Click to edit title"
                   >
                     {{ task.title || 'Untitled task' }}
@@ -237,7 +244,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                   <p
                     *ngIf="(editingInlineId !== task.id || inlineField !== 'description') && task.description"
                     class="notion-kanban-card-description notion-inline-view"
-                    (click)="startInlineEdit(task, 'description')"
+                    (click)="$event.stopPropagation(); startInlineEdit(task, 'description')"
                     title="Click to edit description"
                   >
                     {{ task.description }}
@@ -263,7 +270,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                     <span class="notion-kanban-card-date">{{ formatDate(task.updatedAt) }}</span>
                   </div>
                 </div>
-                <div class="notion-kanban-card-actions">
+                <div class="notion-kanban-card-actions" (click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()">
                   <button
                     (click)="editTask(task)"
                     class="notion-kanban-card-action"
@@ -315,13 +322,18 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 [attr.data-status]="task.status"
                 class="notion-kanban-card"
                 [attr.aria-grabbed]="true"
+                (cdkDragStarted)="onDragStarted(task)"
+                (cdkDragEnded)="onDragEnded(task, $event)"
+                (click)="onCardClick(task, $event)"
               >
-                <div class="notion-kanban-card-content">
+                <div 
+                  class="notion-kanban-card-content"
+                >
                   <!-- Inline editable title -->
                   <h4 
                     *ngIf="editingInlineId !== task.id || inlineField !== 'title'"
                     class="notion-kanban-card-title notion-inline-view"
-                    (click)="startInlineEdit(task, 'title')"
+                    (click)="$event.stopPropagation(); startInlineEdit(task, 'title')"
                     title="Click to edit title"
                   >
                     {{ task.title || 'Untitled task' }}
@@ -342,7 +354,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                   <p
                     *ngIf="(editingInlineId !== task.id || inlineField !== 'description') && task.description"
                     class="notion-kanban-card-description notion-inline-view"
-                    (click)="startInlineEdit(task, 'description')"
+                    (click)="$event.stopPropagation(); startInlineEdit(task, 'description')"
                     title="Click to edit description"
                   >
                     {{ task.description }}
@@ -368,7 +380,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                     <span class="notion-kanban-card-date">{{ formatDate(task.updatedAt) }}</span>
                   </div>
                 </div>
-                <div class="notion-kanban-card-actions">
+                <div class="notion-kanban-card-actions" (click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()">
                   <button
                     (click)="editTask(task)"
                     class="notion-kanban-card-action"
@@ -420,13 +432,18 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 [attr.data-status]="task.status"
                 class="notion-kanban-card"
                 [attr.aria-grabbed]="true"
+                (cdkDragStarted)="onDragStarted(task)"
+                (cdkDragEnded)="onDragEnded(task, $event)"
+                (click)="onCardClick(task, $event)"
               >
-                <div class="notion-kanban-card-content">
+                <div 
+                  class="notion-kanban-card-content"
+                >
                   <!-- Inline editable title -->
                   <h4 
                     *ngIf="editingInlineId !== task.id || inlineField !== 'title'"
                     class="notion-kanban-card-title notion-inline-view"
-                    (click)="startInlineEdit(task, 'title')"
+                    (click)="$event.stopPropagation(); startInlineEdit(task, 'title')"
                     title="Click to edit title"
                   >
                     {{ task.title || 'Untitled task' }}
@@ -447,7 +464,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                   <p
                     *ngIf="(editingInlineId !== task.id || inlineField !== 'description') && task.description"
                     class="notion-kanban-card-description notion-inline-view"
-                    (click)="startInlineEdit(task, 'description')"
+                    (click)="$event.stopPropagation(); startInlineEdit(task, 'description')"
                     title="Click to edit description"
                   >
                     {{ task.description }}
@@ -473,7 +490,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                     <span class="notion-kanban-card-date">{{ formatDate(task.updatedAt) }}</span>
                   </div>
                 </div>
-                <div class="notion-kanban-card-actions">
+                <div class="notion-kanban-card-actions" (click)="$event.stopPropagation()" (mousedown)="$event.stopPropagation()">
                   <button
                     (click)="editTask(task)"
                     class="notion-kanban-card-action"
@@ -690,6 +707,14 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
         </div>
       </div>
     </div>
+
+    <!-- Task Detail Modal - Outside notion-page to avoid any CSS conflicts -->
+    @if (selectedTaskDetail()) {
+      <app-task-detail
+        [taskInput]="selectedTaskDetail()!"
+        (closeEvent)="closeTaskDetail()"
+      ></app-task-detail>
+    }
   `,
   styles: []
 })
@@ -698,6 +723,7 @@ export class TasksComponent {
   private apiService = inject(ApiService);
   private toastService = inject(ToastService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   // Signals for reactive state
   paginatedTasks = signal<any>({
@@ -708,6 +734,7 @@ export class TasksComponent {
   });
   showModal = signal(false);
   editingTask = signal<Task | null>(null);
+  selectedTaskDetail = signal<Task | null>(null);
   isSaving = signal(false);
   view = signal<'table' | 'kanban' | 'charts'>('table');
   chartType: 'bar' | 'pie' = 'bar';
@@ -755,6 +782,10 @@ export class TasksComponent {
   editingInlineId: string | null = null;
   inlineField: 'title' | 'description' | null = null;
   inlineValue = '';
+
+  // Track if drag is in progress to prevent click from opening modal
+  private isDragging = false;
+  private dragTaskId: string | null = null;
 
   // Filters
   filters: TaskFilters = {
@@ -1001,6 +1032,52 @@ export class TasksComponent {
     this.showModal.set(false);
     this.editingTask.set(null);
     this.taskForm.reset();
+  }
+
+  onDragStarted(task: Task): void {
+    this.isDragging = true;
+    this.dragTaskId = task.id;
+  }
+
+  onDragEnded(task: Task, event: any): void {
+    // Reset dragging state after a longer delay to prevent click from firing after drag
+    setTimeout(() => {
+      this.isDragging = false;
+      this.dragTaskId = null;
+    }, 300);
+  }
+
+  onCardClick(task: Task, event: MouseEvent): void {
+    // Don't open modal if:
+    // 1. A drag operation just happened or is in progress
+    // 2. Click is on an editable element or action button (they stop propagation)
+    if (this.isDragging) {
+      return;
+    }
+
+    // Check if click originated from editable element or action button
+    const target = event.target as HTMLElement;
+    if (target.closest('.notion-inline-view') || 
+        target.closest('.notion-kanban-card-actions') ||
+        target.closest('input') ||
+        target.closest('textarea')) {
+      return;
+    }
+
+    // Small delay to ensure drag didn't just end
+    setTimeout(() => {
+      if (!this.isDragging && this.dragTaskId !== task.id) {
+        this.openTaskDetail(task);
+      }
+    }, 50);
+  }
+
+  openTaskDetail(task: Task): void {
+    this.selectedTaskDetail.set(task);
+  }
+
+  closeTaskDetail(): void {
+    this.selectedTaskDetail.set(null);
   }
 
   getStatusVariant(status: TaskStatus): 'default' | 'success' | 'warning' | 'danger' | 'info' {
