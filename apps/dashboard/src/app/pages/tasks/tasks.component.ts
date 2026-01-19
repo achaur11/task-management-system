@@ -533,7 +533,7 @@ import { TaskDetailComponent } from './task-detail.component';
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let task of (paginatedTasks()?.data || [])">
+              <tr *ngFor="let task of (paginatedTasks()?.data || [])" (click)="openTaskDetail(task)" style="cursor: pointer;">
                 <td>
                   <div>
                     <div class="font-medium mb-1">
@@ -558,7 +558,7 @@ import { TaskDetailComponent } from './task-detail.component';
                 <td class="notion-text-small notion-text-muted">
                   {{ formatDate(task.updatedAt) }}
                 </td>
-                <td class="text-right">
+                <td class="text-right" (click)="$event.stopPropagation()">
                   <div class="notion-flex notion-justify-end notion-gap-2">
                     <button
                       (click)="editTask(task)"
