@@ -26,6 +26,12 @@ export const appRoutes: Routes = [
         loadComponent: () => import('./pages/audit/audit.component').then(m => m.AuditComponent),
         canActivate: [RoleGuard],
         data: { roles: ['Admin', 'Owner'] }
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent),
+        canActivate: [RoleGuard],
+        data: { roles: ['Owner'] }
       }
     ]
   },

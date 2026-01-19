@@ -1,33 +1,34 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
+import { ApiService } from '../../../shared/services/api.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { UiInputComponent } from '../../../shared/ui/components/ui-input/ui-input.component';
 import { UiButtonComponent } from '../../../shared/ui/components/ui-button/ui-button.component';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, UiInputComponent, UiButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, UiInputComponent, UiButtonComponent],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-md w-1/2">
+      <div class="max-w-md w-full">
         <!-- Card Container -->
         <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 sm:p-10 border border-gray-200 dark:border-gray-700">
           <!-- Header Section -->
           <div class="text-center mb-8">
             <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Welcome Back
+              Register New User
             </h2>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-              Sign in to your account to continue
+              Add a new user to your organization
             </p>
           </div>
           
-          <!-- Login Form -->
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Registration Form -->
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
             <div class="space-y-5">
               <app-ui-input
                 id="email"
@@ -43,11 +44,36 @@ import { UiButtonComponent } from '../../../shared/ui/components/ui-button/ui-bu
                 id="password"
                 type="password"
                 label="Password"
-                placeholder="Enter your password"
+                placeholder="Enter your password (min. 8 characters)"
                 formControlName="password"
                 [error]="getFieldError('password')"
                 [required]="true"
               />
+
+              <app-ui-input
+                id="displayName"
+                type="text"
+                label="Display Name"
+                placeholder="Enter display name"
+                formControlName="displayName"
+                [error]="getFieldError('displayName')"
+                [required]="true"
+              />
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Role (Optional)
+                </label>
+                <select
+                  formControlName="role"
+                  class="notion-select"
+                >
+                  <option value="">Select a role (default: Viewer)</option>
+                  <option value="Viewer">Viewer</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Owner">Owner</option>
+                </select>
+              </div>
             </div>
 
             <div class="pt-2">
@@ -57,9 +83,9 @@ import { UiButtonComponent } from '../../../shared/ui/components/ui-button/ui-bu
                 size="lg"
                 [fullWidth]="true"
                 [loading]="isLoading"
-                [disabled]="loginForm.invalid || isLoading"
+                [disabled]="registerForm.invalid || isLoading"
               >
-                Sign in
+                Register User
               </app-ui-button>
             </div>
 
@@ -79,53 +105,39 @@ import { UiButtonComponent } from '../../../shared/ui/components/ui-button/ui-bu
               </div>
             </div>
           </form>
-
-          <!-- Demo Credentials Section -->
-          <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
-              <h3 class="text-xs font-semibold text-blue-900 dark:text-blue-200 uppercase tracking-wide mb-3 text-center">
-                Demo Credentials
-              </h3>
-              <br>
-              
-              <div class="space-y-2.5 text-xs text-blue-800 dark:text-blue-300">
-                <div class="flex items-start">
-                  <span class="font-semibold min-w-[50px]">Owner: &nbsp;</span>
-                  <span class="ml-2 font-mono text-blue-700 dark:text-blue-400">john.doe@acme.com / password123</span>
-                </div>
-                <div class="flex items-start">
-                  <span class="font-semibold min-w-[50px]">Admin: &nbsp;</span>
-                  <span class="ml-2 font-mono text-blue-700 dark:text-blue-400">jane.smith@acme.com / password123</span>
-                </div>
-                <div class="flex items-start">
-                  <span class="font-semibold min-w-[50px]">Viewer: &nbsp;</span>
-                  <span class="ml-2 font-mono text-blue-700 dark:text-blue-400">bob.wilson@acme.com / password123</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   `,
   styles: []
 })
-export class LoginComponent {
+export class RegisterComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private apiService = inject(ApiService);
   private toastService = inject(ToastService);
   private router = inject(Router);
 
   isLoading = false;
   errorMessage = '';
 
-  loginForm: FormGroup = this.fb.group({
+  registerForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    displayName: ['', [Validators.required, Validators.maxLength(50)]],
+    role: ['']
   });
 
+  ngOnInit(): void {
+    // Check if user is Owner
+    if (!this.authService.hasRole('Owner')) {
+      this.router.navigate(['/tasks']);
+      this.toastService.error('Only Owners can register new users');
+    }
+  }
+
   async onSubmit(): Promise<void> {
-    if (this.loginForm.invalid) {
+    if (this.registerForm.invalid) {
       this.markFormGroupTouched();
       return;
     }
@@ -134,10 +146,28 @@ export class LoginComponent {
     this.errorMessage = '';
 
     try {
-      await this.authService.login(this.loginForm.value);
-      this.toastService.success('Login successful!');
+      const currentUser = this.authService.user();
+      if (!currentUser || !currentUser.orgId) {
+        throw new Error('Unable to determine your organization');
+      }
+
+      const formValue = this.registerForm.value;
+      const registerData = {
+        email: formValue.email,
+        password: formValue.password,
+        displayName: formValue.displayName,
+        orgId: currentUser.orgId, // Use Owner's organization
+        ...(formValue.role && { role: formValue.role })
+      };
+
+      // Call API directly (don't use AuthService.register which auto-logs in)
+      await this.apiService.register(registerData).toPromise();
+      this.toastService.success('User registered successfully!');
+      this.registerForm.reset();
+      // Optionally redirect back to tasks
+      // this.router.navigate(['/tasks']);
     } catch (error: any) {
-      this.errorMessage = error.error?.message || 'Login failed. Please check your credentials.';
+      this.errorMessage = error.error?.message || 'Registration failed. Please check your information and try again.';
       this.toastService.error(this.errorMessage);
     } finally {
       this.isLoading = false;
@@ -145,7 +175,7 @@ export class LoginComponent {
   }
 
   getFieldError(fieldName: string): string {
-    const field = this.loginForm.get(fieldName);
+    const field = this.registerForm.get(fieldName);
     if (field?.errors && field.touched) {
       if (field.errors['required']) {
         return `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
@@ -154,16 +184,20 @@ export class LoginComponent {
         return 'Please enter a valid email address';
       }
       if (field.errors['minlength']) {
-        return 'Password must be at least 6 characters';
+        return 'Password must be at least 8 characters';
+      }
+      if (field.errors['maxlength']) {
+        return 'Display name must be less than 50 characters';
       }
     }
     return '';
   }
 
   private markFormGroupTouched(): void {
-    Object.keys(this.loginForm.controls).forEach(key => {
-      const control = this.loginForm.get(key);
+    Object.keys(this.registerForm.controls).forEach(key => {
+      const control = this.registerForm.get(key);
       control?.markAsTouched();
     });
   }
 }
+
