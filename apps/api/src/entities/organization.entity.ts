@@ -25,10 +25,10 @@ export class Organization {
   @Column({ type: 'uuid', nullable: true })
   parentOrgId: string | null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations

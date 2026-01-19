@@ -26,7 +26,7 @@ export class AuditLog {
   @Column({ type: 'uuid' })
   userId: string;
 
-  @Column({ type: 'enum', enum: AuditAction })
+  @Column({ type: 'varchar', length: 20, enum: AuditAction })
   action: AuditAction;
 
   @Column({ type: 'varchar', length: 50 })
@@ -35,10 +35,13 @@ export class AuditLog {
   @Column({ type: 'varchar', length: 50 })
   resourceId: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'text', nullable: true, transformer: {
+    to: (value: Record<string, unknown> | null) => value ? JSON.stringify(value) : null,
+    from: (value: string | null) => value ? JSON.parse(value) : null,
+  }})
   metadata: Record<string, unknown> | null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   timestamp: Date;
 
   // Relations

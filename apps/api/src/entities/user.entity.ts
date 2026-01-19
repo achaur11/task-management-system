@@ -35,13 +35,13 @@ export class User {
   @Column({ type: 'uuid' })
   orgId: string;
 
-  @Column({ type: 'enum', enum: Role })
+  @Column({ type: 'varchar', length: 20, enum: Role })
   role: Role;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations

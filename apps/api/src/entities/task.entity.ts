@@ -25,10 +25,20 @@ export class Task {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.Backlog })
+  @Column({ 
+    type: 'varchar', 
+    length: 20, 
+    enum: TaskStatus, 
+    default: TaskStatus.Backlog 
+  })
   status: TaskStatus;
 
-  @Column({ type: 'enum', enum: TaskCategory, default: TaskCategory.Work })
+  @Column({ 
+    type: 'varchar', 
+    length: 20, 
+    enum: TaskCategory, 
+    default: TaskCategory.Work 
+  })
   category: TaskCategory;
 
   @Column({ type: 'uuid', nullable: true })
@@ -37,10 +47,10 @@ export class Task {
   @Column({ type: 'uuid' })
   orgId: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   // Relations

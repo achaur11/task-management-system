@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validate } from '../config/env.validation';
 import databaseConfig from '../config/database.config';
+import { createDatabaseConfig } from '../config/database.factory';
 import { AllExceptionsFilter } from '../common/filters/http-exception.filter';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
 import { ValidationPipe as NestValidationPipe, BadRequestException } from '@nestjs/common';
@@ -27,15 +28,10 @@ import { AuditModule } from '../audit/audit.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: configService.get('database.type'),
-        url: configService.get('database.url'),
-        synchronize: configService.get('database.synchronize'),
-        logging: configService.get('database.logging'),
-        entities: configService.get('database.entities'),
-        migrations: configService.get('database.migrations'),
-        migrationsRun: configService.get('database.migrationsRun'),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        // This factory tests PostgreSQL connection first and falls back to SQLite if unavailable
+        return await createDatabaseConfig(configService);
+      },
       inject: [ConfigService],
     }),
     DatabaseModule,
