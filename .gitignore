@@ -26,5 +26,4 @@ yarn-error.log*
 
 # Env
 .env
-.env.*
 apps/api-go/
