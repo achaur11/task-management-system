@@ -104,7 +104,7 @@ Provides reusable RBAC utilities and decorators:
 
 - **Node.js** 18+ (see `.nvmrc` for exact version)
 - **npm** 9+
-- **PostgreSQL** 13+ (or SQLite for development)
+- **PostgreSQL** 13+ (optional - application automatically falls back to SQLite if PostgreSQL isn't running)
 - **Git**
 
 ## Installation & Setup
@@ -132,14 +132,18 @@ Provides reusable RBAC utilities and decorators:
    # DATABASE_URL=postgresql://user:password@localhost:5432/taskdb
    ```
 
-4. **Database setup**
-   ```bash
-   # Run migrations to create tables
-   npm run migration:run
+4. **Database setup** (Optional)
    
-   # Seed the database with sample data
-   npm run seed
+   **No database setup required!** The application automatically detects if PostgreSQL is running:
+   - ✅ **PostgreSQL available**: Uses PostgreSQL database (recommended for production)
+   - ✅ **PostgreSQL not available**: Automatically falls back to SQLite (works out of the box)
+   
+   If you want to use PostgreSQL, ensure it's running and configure the connection in your `.env` file:
+   ```bash
+   DATABASE_URL=postgresql://user:password@localhost:5432/taskdb
    ```
+   
+   **Note**: Whether using PostgreSQL or SQLite, the application will automatically run migrations and seed data on first startup. You don't need to manually run migration or seed scripts.
 
 5. **Build shared libraries**
    ```bash
@@ -150,22 +154,25 @@ Provides reusable RBAC utilities and decorators:
 
 ### Start Development Servers
 
-```bash
-# Start both frontend and backend
-npm run dev:all
+**Recommended:** Start the frontend and backend in separate terminal windows for better reliability:
 
-# Or start individually:
-npm run dev:api      # Backend only (http://localhost:3000)
-npm run dev:dashboard # Frontend only (http://localhost:4200)
+```bash
+# Terminal 1 - Start the backend API
+npm run dev:api      # Backend (http://localhost:3000)
+
+# Terminal 2 - Start the frontend dashboard
+npm run dev:dashboard # Frontend (http://localhost:4200)
 ```
+
+**Note:** The `npm run dev:all` command exists but can be unreliable. It's recommended to use the individual commands above in separate terminal windows.
 
 ### Available Scripts
 
 ```bash
 # Development
-npm run dev:all          # Start both apps
-npm run dev:api          # Start API server
-npm run dev:dashboard    # Start dashboard
+npm run dev:api          # Start API server (recommended)
+npm run dev:dashboard    # Start dashboard (recommended)
+npm run dev:all          # Start both apps (can be unreliable - use individual commands instead)
 
 # Building
 npm run build:api        # Build API
@@ -367,9 +374,20 @@ When the API is running, visit: `http://localhost:3000/api/docs`
 ## Getting Started
 
 1. **Start the application**
+   
+   Open two separate terminal windows and run:
+   
+   **Terminal 1 - Backend:**
    ```bash
-   npm run dev:all
+   npm run dev:api
    ```
+   
+   **Terminal 2 - Frontend:**
+   ```bash
+   npm run dev:dashboard
+   ```
+   
+   **Note:** It's recommended to use separate terminal windows instead of `npm run dev:all` for better reliability.
 
 2. **Access the application**
    - Frontend: http://localhost:4200
@@ -391,6 +409,8 @@ When the API is running, visit: `http://localhost:3000/api/docs`
 ### Common Issues
 
 #### Database Connection
+The application automatically falls back to SQLite if PostgreSQL isn't running, so no database setup is required. However, if you want to use PostgreSQL:
+
 ```bash
 # Check if PostgreSQL is running
 pg_ctl status
@@ -398,6 +418,8 @@ pg_ctl status
 # Verify connection string in .env
 DATABASE_URL=postgresql://user:password@localhost:5432/taskdb
 ```
+
+**Note**: If PostgreSQL is unavailable, the application will automatically create and use an SQLite database file (`database.sqlite` in the project root). Migrations and seed data run automatically on startup.
 
 #### Port Conflicts
 ```bash
@@ -429,7 +451,7 @@ npm run build:libs
 JWT_SECRET=your-secret-key-here
 JWT_EXPIRES_IN=1h
 
-# Database
+# Database (optional - if not set or PostgreSQL unavailable, SQLite will be used)
 DATABASE_URL=postgresql://user:password@localhost:5432/taskdb
 
 # Optional
@@ -438,6 +460,8 @@ PORT=3000
 ```
 
 ### Development vs Production
-- **Development**: Uses SQLite fallback, detailed logging
-- **Production**: Requires PostgreSQL, optimized performance
+- **Development**: Automatically uses SQLite if PostgreSQL isn't running, detailed logging
+- **Production**: Recommended to use PostgreSQL for better performance and scalability
+- **Automatic Fallback**: If PostgreSQL connection fails during startup, the application automatically switches to SQLite
+- **Migrations & Seeding**: Both databases automatically run migrations and seed data on startup
 - **Environment Files**: Separate `.env` files for different environments
