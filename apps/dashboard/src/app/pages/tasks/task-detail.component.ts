@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../shared/services/api.service';
 import { Task, TaskStatus, TaskCategory } from '../../../shared/models/task.model';
@@ -12,9 +12,9 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
   template: `
     <!-- Overlay backdrop -->
     <div 
-      class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 transition-opacity"
+      class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 backdrop-blur-sm transition-opacity"
       (click)="close()"
-      style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 9998 !important; pointer-events: auto !important;"
+      style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 9998 !important; pointer-events: auto !important; backdrop-filter: blur(4px) !important;"
     ></div>
 
     <!-- Modal container - centered -->
@@ -24,26 +24,28 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
       style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 9999 !important; pointer-events: none !important; display: flex !important; align-items: center !important; justify-content: center !important;"
     >
       <div 
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col overflow-hidden"
+        class="bg-white dark:bg-gray-700 rounded-lg flex flex-col border-indigo-500 dark:border-indigo-400"
         (click)="$event.stopPropagation()"
-        style="pointer-events: auto !important; position: relative !important; width: 90vw !important; max-width: 1400px !important; max-height: 90vh !important; margin: 0 auto !important;"
+        style="pointer-events: auto !important; position: relative !important; width: 90vw !important; max-width: 1400px !important; height: 90vh !important; max-height: 90vh !important; margin: 0 auto !important; display: flex !important; flex-direction: column !important; border-width: 6px !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.5) !important;"
       >
         <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Task Details</h2>
           <button
             (click)="close()"
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            title="Close"
+            type="button"
+            class="flex items-center justify-center notion-btn-danger focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            style="width: 20px; height: 20px; min-width: 20px; min-height: 20px; border: none; outline: none; border-radius: 4px;"
+            aria-label="Close"
           >
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 25px; height: 25px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
+        <div class="flex-1 overflow-y-auto flex flex-col md:flex-row" style="max-height: calc(90vh - 80px); min-height: 0; overflow-y: auto !important;">
           <!-- Left Panel - Task Details -->
           <div class="flex-1 overflow-y-auto p-6 border-r border-gray-200 dark:border-gray-700">
             <div class="space-y-6">
@@ -156,7 +158,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                       {{ log.action }}
                     </span>
                     <span class="text-sm text-gray-600 dark:text-gray-400">
-                      by {{ log.user?.displayName || log.user?.email || 'Unknown' }}
+                       &nbsp;by {{ log.user?.displayName || log.user?.email || 'Unknown' }}
                     </span>
                   </div>
                   <span class="text-xs text-gray-500 dark:text-gray-500">
@@ -166,7 +168,7 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
                 <div *ngIf="log.metadata" class="mt-2 text-sm text-gray-700 dark:text-gray-300">
                   <div *ngIf="log.metadata['changes']" class="space-y-1">
                     <div *ngFor="let change of getMetadataChanges(log.metadata)">
-                      <span class="font-medium">{{ change.field }}:</span>
+                      <span class="font-medium">{{ change.field }}: &nbsp;</span>
                       <span *ngIf="change.oldValue" class="text-gray-500 dark:text-gray-400">
                         "{{ change.oldValue }}" → 
                       </span>
@@ -195,11 +197,16 @@ import { UiBadgeComponent } from '../../../shared/ui/components/ui-badge/ui-badg
     }
   `]
 })
-export class TaskDetailComponent implements OnInit {
+export class TaskDetailComponent implements OnInit, OnDestroy {
   @Input() set taskInput(value: Task | null) {
     this.task.set(value);
     if (value) {
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
       this.loadAuditLogs();
+    } else {
+      // Restore body scroll when modal is closed
+      document.body.style.overflow = '';
     }
   }
   @Output() closeEvent = new EventEmitter<void>();
@@ -213,6 +220,11 @@ export class TaskDetailComponent implements OnInit {
 
   ngOnInit(): void {
     // Task input is handled via setter
+  }
+
+  ngOnDestroy(): void {
+    // Ensure body scroll is restored when component is destroyed
+    document.body.style.overflow = '';
   }
 
   private async loadAuditLogs(): Promise<void> {
@@ -249,6 +261,8 @@ export class TaskDetailComponent implements OnInit {
   }
 
   close(): void {
+    // Restore body scroll before closing
+    document.body.style.overflow = '';
     this.closeEvent.emit();
   }
 
